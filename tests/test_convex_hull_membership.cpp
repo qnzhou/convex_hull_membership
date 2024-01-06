@@ -1,5 +1,6 @@
 #include <convex_hull_membership/contains.h>
 
+#include <array>
 #include <catch2/benchmark/catch_benchmark.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <random>

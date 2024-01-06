@@ -30,4 +30,4 @@ jobs:
             - name: test
               run: cmake --build build --target RUN_TESTS
             - name: benchmark
-              run: build/Release/mtet_tests.exe benchmark
+              run: build/Release/convex_hull_membership_tests.exe benchmark

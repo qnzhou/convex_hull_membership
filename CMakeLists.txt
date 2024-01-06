@@ -23,4 +23,6 @@ if (CONVEX_HULL_MEMBERSHIP_BUILD_TESTS)
         Catch2::Catch2WithMain)
     target_compile_definitions(convex_hull_membership_tests PRIVATE CATCH_CONFIG_ENABLE_BENCHMARKING)
     target_compile_features(convex_hull_membership_tests PRIVATE cxx_std_20)
+
+    catch_discover_tests(convex_hull_membership_tests)
 endif()

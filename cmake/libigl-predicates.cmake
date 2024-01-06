@@ -12,6 +12,8 @@ CPMAddPackage(
 )
 
 set_target_properties(predicates PROPERTIES FOLDER third_party)
-target_compile_options(predicates PRIVATE "-Wno-deprecated-non-prototype")
+if (NOT WIN32)
+    target_compile_options(predicates PRIVATE "-Wno-deprecated-non-prototype")
+endif()
 
 add_library(igl::predicates ALIAS predicates)

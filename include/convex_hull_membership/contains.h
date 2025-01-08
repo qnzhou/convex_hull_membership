@@ -3,6 +3,7 @@
 #include <predicates.h>
 
 #include <cassert>
+#include <exception>
 #include <span>
 #include <type_traits>
 
@@ -69,30 +70,27 @@ bool is_separating_plane(std::span<T> pts, std::span<T> query_point, size_t i,
     return true;
 }
 
-int det2_filtered(double p0, double p1, double q0, double q1)
-{
-   double d1 = p0 * q1;
-   double d2 = p1 * q0;
-   double m = d1 - d2;
+int det2_filtered(double p0, double p1, double q0, double q1) {
+    double d1 = p0 * q1;
+    double d2 = p1 * q0;
+    double m = d1 - d2;
 
-   double _tmp_fabs;
+    double _tmp_fabs;
 
-   double max_var = 0.0;
-   if ((_tmp_fabs = fabs(p0)) > max_var) max_var = _tmp_fabs;
-   if ((_tmp_fabs = fabs(p1)) > max_var) max_var = _tmp_fabs;
-   if ((_tmp_fabs = fabs(q0)) > max_var) max_var = _tmp_fabs;
-   if ((_tmp_fabs = fabs(q1)) > max_var) max_var = _tmp_fabs;
-   double epsilon = max_var;
-   epsilon *= epsilon;
-   epsilon *= 4.440892098500627e-16;
-   if (m > epsilon) return 1;
-   if (-m > epsilon) return -1;
-   return 0;
+    double max_var = 0.0;
+    if ((_tmp_fabs = std::fabs(p0)) > max_var) max_var = _tmp_fabs;
+    if ((_tmp_fabs = std::fabs(p1)) > max_var) max_var = _tmp_fabs;
+    if ((_tmp_fabs = std::fabs(q0)) > max_var) max_var = _tmp_fabs;
+    if ((_tmp_fabs = std::fabs(q1)) > max_var) max_var = _tmp_fabs;
+    double epsilon = max_var;
+    epsilon *= epsilon;
+    epsilon *= 4.440892098500627e-16;
+    if (m > epsilon) return 1;
+    if (-m > epsilon) return -1;
+    return 0;
 }
 
-
-inline int det2(std::span<double> pa, std::span<double> pb)
-{
+inline int det2(std::span<double> pa, std::span<double> pb) {
     int r = det2_filtered(pa[0], pa[1], pb[0], pb[1]);
     if (r != 0) {
         return r;

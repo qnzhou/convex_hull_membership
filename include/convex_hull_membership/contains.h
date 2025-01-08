@@ -97,4 +97,36 @@ bool contains(std::span<T> pts, std::span<T> query_point) {
     return true;
 }
 
-}  // namespace convexhull_membership
+template <int DIM, typename T>
+bool contains_origin(std::span<T> pts) {
+    static_assert(std::is_same_v<T, IGL_PREDICATES_REAL>);
+    exactinit();
+    const size_t num_pts = pts.size() / DIM;
+
+    if constexpr (DIM == 2) {
+        T origin[2] = {0, 0};
+        for (size_t i = 0; i < num_pts; i++) {
+            T* pi = pts.data() + DIM * i;
+            for (size_t j = i + 1; j < num_pts; j++) {
+                T* pj = pts.data() + DIM * j;
+
+                const auto ori_ij = orient2d(pi, pj, origin);
+                if (ori_ij == 0) return true;
+
+                for (size_t k = j + 1; k < num_pts; k++) {
+                    T* pk = pts.data() + DIM * k;
+
+                    const auto ori_jk = orient2d(pj, pk, origin);
+                    const auto ori_ki = orient2d(pk, pi, origin);
+                    if (ori_ij <= 0 && ori_jk <= 0 && ori_ki <= 0) return true;
+                    if (ori_ij >= 0 && ori_jk >= 0 && ori_ki >= 0) return true;
+                }
+            }
+        }
+    } else {
+        throw std::runtime_error("Not implemented");
+    }
+    return false;
+}
+
+}  // namespace convex_hull_membership

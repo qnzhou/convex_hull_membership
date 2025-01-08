@@ -28,15 +28,38 @@ void check() {
     }
 }
 
+template <typename T>
+void check_origin() {
+    constexpr size_t N = 35;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dist(1, 10);
+
+    std::array<T, N * 2> pts;
+    std::for_each(pts.begin(), pts.end(), [&](auto& pt) { pt = dist(gen); });
+
+    REQUIRE(!convex_hull_membership::contains_origin<2, T>(pts));
+
+    pts[0] = 0;
+    pts[1] = 0;
+    REQUIRE(convex_hull_membership::contains_origin<2, T>(pts));
+
+    pts[0] = -pts[2] - pts[4];
+    pts[1] = -pts[3] - pts[5];
+    REQUIRE(convex_hull_membership::contains_origin<2, T>(pts));
+}
+
 TEST_CASE("convex_hull_membership", "[check]") {
     using Scalar = double;
     check<Scalar, 2>();
     check<Scalar, 3>();
+
+    check_origin<Scalar>();
 }
 
 TEST_CASE("benchmark", "[convext_hull_membership][.benchmark]") {
     using Scalar = double;
-    constexpr size_t N = 20;
+    constexpr size_t N = 35;
     BENCHMARK_ADVANCED("2D")(Catch::Benchmark::Chronometer meter) {
         constexpr size_t DIM = 2;
 
@@ -54,6 +77,22 @@ TEST_CASE("benchmark", "[convext_hull_membership][.benchmark]") {
 
         meter.measure([&] {
             return convex_hull_membership::contains<DIM, Scalar>(data, query);
+        });
+    };
+
+    BENCHMARK_ADVANCED("2D origin")(Catch::Benchmark::Chronometer meter) {
+        constexpr size_t DIM = 2;
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<> dist(-10, 10);
+
+        std::array<Scalar, N * DIM> data;
+        std::for_each(data.begin(), data.end(),
+                      [&](auto& pt) { pt = dist(gen); });
+
+        meter.measure([&] {
+            return convex_hull_membership::contains_origin<DIM, Scalar>(data);
         });
     };
 

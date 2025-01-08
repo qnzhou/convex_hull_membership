@@ -71,7 +71,7 @@ bool is_separating_plane(std::span<T> pts, std::span<T> query_point, size_t i,
     return true;
 }
 
-int det2_filtered(double p0, double p1, double q0, double q1) {
+inline int det2_filtered(double p0, double p1, double q0, double q1) {
     double d1 = p0 * q1;
     double d2 = p1 * q0;
     double m = d1 - d2;

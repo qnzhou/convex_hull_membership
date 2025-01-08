@@ -3,8 +3,9 @@
 #include <predicates.h>
 
 #include <cassert>
-#include <exception>
+#include <cmath>
 #include <span>
+#include <stdexcept>
 #include <type_traits>
 
 namespace convex_hull_membership {

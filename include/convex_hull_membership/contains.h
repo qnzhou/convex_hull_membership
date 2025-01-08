@@ -69,6 +69,39 @@ bool is_separating_plane(std::span<T> pts, std::span<T> query_point, size_t i,
     return true;
 }
 
+int det2_filtered(double p0, double p1, double q0, double q1)
+{
+   double d1 = p0 * q1;
+   double d2 = p1 * q0;
+   double m = d1 - d2;
+
+   double _tmp_fabs;
+
+   double max_var = 0.0;
+   if ((_tmp_fabs = fabs(p0)) > max_var) max_var = _tmp_fabs;
+   if ((_tmp_fabs = fabs(p1)) > max_var) max_var = _tmp_fabs;
+   if ((_tmp_fabs = fabs(q0)) > max_var) max_var = _tmp_fabs;
+   if ((_tmp_fabs = fabs(q1)) > max_var) max_var = _tmp_fabs;
+   double epsilon = max_var;
+   epsilon *= epsilon;
+   epsilon *= 4.440892098500627e-16;
+   if (m > epsilon) return 1;
+   if (-m > epsilon) return -1;
+   return 0;
+}
+
+
+inline int det2(std::span<double> pa, std::span<double> pb)
+{
+    int r = det2_filtered(pa[0], pa[1], pb[0], pb[1]);
+    if (r != 0) {
+        return r;
+    } else {
+        double origin[2] = {0, 0};
+        return orient2d(pa.data(), pb.data(), origin);
+    }
+}
+
 }  // namespace details
 
 template <int DIM, typename T>
@@ -104,20 +137,19 @@ bool contains_origin(std::span<T> pts) {
     const size_t num_pts = pts.size() / DIM;
 
     if constexpr (DIM == 2) {
-        T origin[2] = {0, 0};
         for (size_t i = 0; i < num_pts; i++) {
             T* pi = pts.data() + DIM * i;
             for (size_t j = i + 1; j < num_pts; j++) {
                 T* pj = pts.data() + DIM * j;
 
-                const auto ori_ij = orient2d(pi, pj, origin);
+                const auto ori_ij = details::det2({pi, 2}, {pj, 2});
                 if (ori_ij == 0) return true;
 
                 for (size_t k = j + 1; k < num_pts; k++) {
                     T* pk = pts.data() + DIM * k;
 
-                    const auto ori_jk = orient2d(pj, pk, origin);
-                    const auto ori_ki = orient2d(pk, pi, origin);
+                    const auto ori_jk = details::det2({pj, 2}, {pk, 2});
+                    const auto ori_ki = details::det2({pk, 2}, {pi, 2});
                     if (ori_ij <= 0 && ori_jk <= 0 && ori_ki <= 0) return true;
                     if (ori_ij >= 0 && ori_jk >= 0 && ori_ki >= 0) return true;
                 }

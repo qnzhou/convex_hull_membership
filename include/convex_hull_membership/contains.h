@@ -130,7 +130,6 @@ template <int DIM, int N, typename T>
 bool contains_origin(std::span<T, DIM * N> pts) {
     static_assert(DIM == 2);
     static_assert(std::is_same_v<T, IGL_PREDICATES_REAL>);
-    exactinit();
 
     std::array<T, N * (N - 1) / 2> queries;
     size_t count = 0;

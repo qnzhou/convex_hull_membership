@@ -92,13 +92,10 @@ inline int det2_filtered(double p0, double p1, double q0, double q1) {
 }
 
 inline int det2(std::span<double> pa, std::span<double> pb) {
-    int r = det2_filtered(pa[0], pa[1], pb[0], pb[1]);
-    if (r != 0) {
-        return r;
-    } else {
-        double origin[2] = {0, 0};
-        return orient2d(pa.data(), pb.data(), origin);
-    }
+    auto d = pa[0] * pb[1] - pa[1] * pb[0];
+    if (d > 0) return 1;
+    if (d < 0) return -1;
+    return 0;
 }
 
 }  // namespace details
@@ -129,33 +126,36 @@ bool contains(std::span<T> pts, std::span<T> query_point) {
     return true;
 }
 
-template <int DIM, typename T>
-bool contains_origin(std::span<T> pts) {
+template <int DIM, int N, typename T>
+bool contains_origin(std::span<T, DIM * N> pts) {
+    static_assert(DIM == 2);
     static_assert(std::is_same_v<T, IGL_PREDICATES_REAL>);
     exactinit();
-    const size_t num_pts = pts.size() / DIM;
 
-    if constexpr (DIM == 2) {
-        for (size_t i = 0; i < num_pts; i++) {
-            T* pi = pts.data() + DIM * i;
-            for (size_t j = i + 1; j < num_pts; j++) {
-                T* pj = pts.data() + DIM * j;
+    std::array<T, N * (N - 1) / 2> queries;
+    size_t count = 0;
+    for (size_t i = 0; i < N; i++) {
+        std::span<T, 2> pi{pts.data() + DIM * i, 2};
+        for (size_t j = i + 1; j < N; j++) {
+            std::span<T, 2> pj{pts.data() + DIM * j, 2};
+            const size_t idx = (N - 1 + N - i) * i / 2 + j - i - 1;
+            assert(idx == count);
+            queries[idx] = details::det2(pi, pj);
+            count++;
+        }
+    }
+    assert(count == N * (N-1) / 2);
 
-                const auto ori_ij = details::det2({pi, 2}, {pj, 2});
-                if (ori_ij == 0) return true;
-
-                for (size_t k = j + 1; k < num_pts; k++) {
-                    T* pk = pts.data() + DIM * k;
-
-                    const auto ori_jk = details::det2({pj, 2}, {pk, 2});
-                    const auto ori_ki = details::det2({pk, 2}, {pi, 2});
-                    if (ori_ij <= 0 && ori_jk <= 0 && ori_ki <= 0) return true;
-                    if (ori_ij >= 0 && ori_jk >= 0 && ori_ki >= 0) return true;
-                }
+    for (size_t i = 0; i < N; i++) {
+        for (size_t j = i + 1; j < N; j++) {
+            const size_t idx_ij = (N - 1 + N - i) * i / 2 + j - i - 1;
+            for (size_t k = j + 1; k < N; k++) {
+                const size_t idx_ik = (N - 1 + N - i) * i / 2 + k - i - 1;
+                const size_t idx_jk = (N - 1 + N - j) * j / 2 + k - j - 1;
+                if (queries[idx_ij] <= 0 && queries[idx_jk] <= 0 && queries[idx_ik] >= 0) return true;
+                if (queries[idx_ij] >= 0 && queries[idx_jk] >= 0 && queries[idx_ik] <= 0) return true;
             }
         }
-    } else {
-        throw std::runtime_error("Not implemented");
     }
     return false;
 }

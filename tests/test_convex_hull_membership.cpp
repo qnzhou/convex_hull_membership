@@ -38,15 +38,15 @@ void check_origin() {
     std::array<T, N * 2> pts;
     std::for_each(pts.begin(), pts.end(), [&](auto& pt) { pt = dist(gen); });
 
-    REQUIRE(!convex_hull_membership::contains_origin<2, T>(pts));
+    REQUIRE(!convex_hull_membership::contains_origin<2, N, T>(pts));
 
     pts[0] = 0;
     pts[1] = 0;
-    REQUIRE(convex_hull_membership::contains_origin<2, T>(pts));
+    REQUIRE(convex_hull_membership::contains_origin<2, N, T>(pts));
 
     pts[0] = -pts[2] - pts[4];
     pts[1] = -pts[3] - pts[5];
-    REQUIRE(convex_hull_membership::contains_origin<2, T>(pts));
+    REQUIRE(convex_hull_membership::contains_origin<2, N, T>(pts));
 }
 
 TEST_CASE("convex_hull_membership", "[check]") {
@@ -85,14 +85,14 @@ TEST_CASE("benchmark", "[convext_hull_membership][.benchmark]") {
 
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_real_distribution<> dist(-10, 10);
+        std::uniform_real_distribution<> dist(0, 20);
 
         std::array<Scalar, N * DIM> data;
         std::for_each(data.begin(), data.end(),
                       [&](auto& pt) { pt = dist(gen); });
 
         meter.measure([&] {
-            return convex_hull_membership::contains_origin<DIM, Scalar>(data);
+            return convex_hull_membership::contains_origin<DIM, N, Scalar>(data);
         });
     };
 
